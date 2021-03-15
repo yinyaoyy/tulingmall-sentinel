@@ -58,7 +58,7 @@ public class UmsMemberController {
         tokenMap.put("token", tokenInfo.getAccess_token());
         tokenMap.put("tokenHead", tokenHead);
         tokenMap.put("refreshToken",tokenInfo.getRefresh_token());
-        tokenMap.put("memberId","8");
+        tokenMap.put("memberId",tokenInfo.getAdditionalInfo().get("memberId"));
         tokenMap.put("nickName",username);
         return CommonResult.success(tokenMap);
     }
