@@ -37,6 +37,12 @@ public class LocalCache<T> {
         localCache.put(key,object);
     }
 
+    /***
+     * 返回值 如果不存在返回null
+     * @param key
+     * @param <T>
+     * @return
+     */
     public <T> T getCache(String key){
        return (T) localCache.getIfPresent(key);
     }

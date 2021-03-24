@@ -1,12 +1,10 @@
 package com.tuling;
 
-import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.apache.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication(exclude = SpringBootConfiguration.class) /*(exclude = {GlobalTransactionAutoConfiguration.class})*/
 @EnableFeignClients

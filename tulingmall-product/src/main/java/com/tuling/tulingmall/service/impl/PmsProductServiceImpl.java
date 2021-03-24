@@ -77,6 +77,7 @@ public class PmsProductServiceImpl implements PmsProductService {
     @Autowired
     private ZKLock zkLock;
     private String lockPath = "/load_db";
+
     /**
      * 获取商品详情信息
      *
@@ -84,10 +85,41 @@ public class PmsProductServiceImpl implements PmsProductService {
      */
     public PmsProductParam getProductInfo(Long id) {
         PmsProductParam productInfo = null;
-        productInfo = portalProductDao.getProductInfo(id);
-        if (null == productInfo) {
+        productInfo = cache.get(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id);
+        if (null != productInfo) {
             return productInfo;
         }
+        productInfo = redisOpsUtil.get(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, PmsProductParam.class);
+        if (productInfo != null) {
+            log.info("get redis productId:" + productInfo);
+            cache.setLocalCache(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, productInfo);
+            return productInfo;
+        }
+        try {
+            if (zkLock.lock(lockPath + "_" + id)) {
+                productInfo = portalProductDao.getProductInfo(id);
+                if (null == productInfo) {
+                    return null;
+                }
+                checkFlash(id, productInfo);
+                log.info("set db productId:" + productInfo);
+                redisOpsUtil.set(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, productInfo, 3600, TimeUnit.SECONDS);
+                cache.setLocalCache(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, productInfo);
+            } else {
+                log.info("get redis2 productId:" + productInfo);
+                productInfo = redisOpsUtil.get(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, PmsProductParam.class);
+                if (productInfo != null) {
+                    cache.setLocalCache(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, productInfo);
+                }
+            }
+        } finally {
+            log.info("unlock :" + productInfo);
+            zkLock.unlock(lockPath + "_" + id);
+        }
+        return productInfo;
+    }
+
+    private void checkFlash(Long id, PmsProductParam productInfo) {
         FlashPromotionParam promotion = flashPromotionProductDao.getFlashPromotion(id);
         if (!ObjectUtils.isEmpty(promotion)) {
             productInfo.setFlashPromotionCount(promotion.getRelation().get(0).getFlashPromotionCount());
@@ -98,65 +130,8 @@ public class PmsProductServiceImpl implements PmsProductService {
             productInfo.setFlashPromotionStartDate(promotion.getStartDate());
             productInfo.setFlashPromotionStatus(promotion.getStatus());
         }
-        return productInfo;
     }
 
-
-    /**
-     * 获取商品详情信息
-     *
-     * @param id 产品ID
-     */
-    public PmsProductParam getProductInfo2(Long id) {
-        PmsProductParam productInfo = null;
-        productInfo = cache.get(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id);
-        //一级缓存
-        if (productInfo != null) {
-            return productInfo;
-        }
-
-        //从二级缓存Redis里找
-        productInfo = redisOpsUtil.get(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, PmsProductParam.class);
-
-        if (productInfo != null) {
-            cache.setLocalCache(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, productInfo);
-            return productInfo;
-        }
-
-        if (zkLock.lock(lockPath + "_" + id)) {
-            //todo 查询商品详情信息
-            productInfo = portalProductDao.getProductInfo(id);
-            if (productInfo == null) {
-                return null;
-            }
-
-            /*
-             * 查询是否是秒杀商品
-             */
-            FlashPromotionParam promotion = flashPromotionProductDao.getFlashPromotion(id);
-            if (!ObjectUtils.isEmpty(promotion)) {
-                productInfo.setFlashPromotionCount(promotion.getRelation().get(0).getFlashPromotionCount());
-                productInfo.setFlashPromotionLimit(promotion.getRelation().get(0).getFlashPromotionLimit());
-                productInfo.setFlashPromotionPrice(promotion.getRelation().get(0).getFlashPromotionPrice());
-                productInfo.setFlashPromotionRelationId(promotion.getRelation().get(0).getId());
-                productInfo.setFlashPromotionEndDate(promotion.getEndDate());
-                productInfo.setFlashPromotionStartDate(promotion.getStartDate());
-                productInfo.setFlashPromotionStatus(promotion.getStatus());
-            }
-
-            //todo 缓存到一级缓存
-            cache.setLocalCache(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, productInfo);
-            //todo 商品信息缓存到reids当中，缓存被动更新
-            redisOpsUtil.set(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, productInfo, 3600, TimeUnit.SECONDS);
-            zkLock.unlock(lockPath + "_" + id);
-        } else {
-            productInfo = redisOpsUtil.get(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, PmsProductParam.class);
-            if (productInfo != null) {
-                cache.setLocalCache(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, productInfo);
-            }
-        }
-        return productInfo;
-    }
 
     /**
      * add by yangguo

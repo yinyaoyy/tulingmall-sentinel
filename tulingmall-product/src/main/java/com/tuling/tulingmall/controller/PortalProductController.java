@@ -2,10 +2,7 @@ package com.tuling.tulingmall.controller;
 
 import com.tuling.tulingmall.common.api.CommonResult;
 import com.tuling.tulingmall.dao.PortalProductDao;
-import com.tuling.tulingmall.domain.CartProduct;
-import com.tuling.tulingmall.domain.FlashPromotionProduct;
-import com.tuling.tulingmall.domain.FlashPromotionSessionExt;
-import com.tuling.tulingmall.domain.PromotionProduct;
+import com.tuling.tulingmall.domain.*;
 import com.tuling.tulingmall.service.PmsProductService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -41,8 +38,12 @@ public class PortalProductController {
     })
     @RequestMapping(value = "/productInfo/{id}", method = RequestMethod.GET)
     public CommonResult getProductInfo(@PathVariable Long id) {
-        return CommonResult.success(pmsProductService.getProductInfo(id));
+        PmsProductParam pmsProductParam=pmsProductService.getProductInfo(id);
+        return CommonResult.success(pmsProductParam);
     }
+
+
+
 
     @ApiOperation(value = "根据商品Id获取购物车商品的信息")
     @RequestMapping(value = "/cartProduct/{productId}", method = RequestMethod.GET)

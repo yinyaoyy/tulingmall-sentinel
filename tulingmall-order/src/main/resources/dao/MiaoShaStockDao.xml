@@ -30,7 +30,7 @@
     <select id="selectMiaoShaStockInLock" resultType="java.lang.Integer">
         select flash_promotion_count from sms_flash_promotion_product_relation where id=#{id} for UPDATE
     </select>
-
+    <!--扣减库存 防止库存超卖-->
     <update id="descStock">
         UPDATE sms_flash_promotion_product_relation
         SET flash_promotion_count = CASE

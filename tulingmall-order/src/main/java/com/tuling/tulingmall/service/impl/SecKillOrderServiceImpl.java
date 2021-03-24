@@ -66,35 +66,36 @@ public class SecKillOrderServiceImpl implements SecKillOrderService {
     /**
      * 秒杀订单确认信息
      */
+    @Override
     public CommonResult generateConfirmMiaoShaOrder(Long productId
-            , Long memberId,String token) throws BusinessException {
-        //todo 进行订单金额确认前的库存与购买权限检查
+            , Long memberId, String token) throws BusinessException {
+        //【1】 进行订单金额确认前的库存与购买权限检查
         CommonResult commonResult = confirmCheck(productId,memberId,token);
         if(commonResult.getCode() == 500){
             return commonResult;
         }
-        //todo 调用会员服务获取会员信息
+        // 【2】调用会员服务获取会员信息
         UmsMember member = umsMemberFeignApi.getMemberById().getData();
 
-        //todo 从产品服务获取产品信息
+        // 【3】从产品服务获取产品信息
         PmsProductParam product = getProductInfo(productId);
 
         if(product == null){
             return CommonResult.failed("无效的商品！");
         }
 
-        //todo 验证秒杀时间是否超时
+        //【4】 验证秒杀时间是否超时
         if(!volidateMiaoShaTime(product)){
             return CommonResult.failed("秒杀活动未开始或已结束！");
         }
 
         ConfirmOrderResult result = new ConfirmOrderResult();
 
-        //todo 获取用户收货地址列表
+        //【5】 获取用户收货地址列表
         List<UmsMemberReceiveAddress> memberReceiveAddressList = umsMemberFeignApi.list().getData();
         result.setMemberReceiveAddressList(memberReceiveAddressList);
 
-        //TODO 构建商品信息
+        //【6】构建商品信息
         List<CartPromotionItem> cartPromotionItemList = new ArrayList<>();
         CartPromotionItem promotionItem = new CartPromotionItem();
         promotionItem.setProductId(product.getId());//产品ID
@@ -113,14 +114,11 @@ public class SecKillOrderServiceImpl implements SecKillOrderService {
         promotionItem.setPromotionMessage("秒杀特惠活动");
         cartPromotionItemList.add(promotionItem);
         result.setCartPromotionItemList(cartPromotionItemList);
-
-        //todo 计算订单总金额
+        //【7】 计算订单总金额
         ConfirmOrderResult.CalcAmount calcAmount = calcCartAmount(product);
         result.setCalcAmount(calcAmount);
-
-        //todo 会员积分
+        //【8】 会员积分
         result.setMemberIntegration(member.getIntegration());
-
         return CommonResult.success(result);
     }
 
@@ -131,6 +129,7 @@ public class SecKillOrderServiceImpl implements SecKillOrderService {
      * @return
      */
     @Override
+    //@Transactional TODO 如果是数据库控制 防止超卖。Transactional有意义吗？
     public CommonResult<Map<String,Object>> generateSecKillOrder(OrderParam orderParam, Long memberId,String token) throws BusinessException {
         Long productId = orderParam.getItemIds().get(0);
         CommonResult commonResult = confirmCheck(productId,memberId,token);
@@ -138,15 +137,15 @@ public class SecKillOrderServiceImpl implements SecKillOrderService {
             return commonResult;
         }
 
-        //todo 从产品服务获取产品信息
+        //【2】 从产品服务获取产品信息
         PmsProductParam product = getProductInfo(productId);
-        //todo 验证秒杀时间是否超时
+        //【3】 验证秒杀时间是否超时
         if(!volidateMiaoShaTime(product)){
             return CommonResult.failed("秒杀活动未开始或已结束！");
         }
-        //todo 调用会员服务获取会员信息
+        //【4】 调用会员服务获取会员信息
         UmsMember member = umsMemberFeignApi.getMemberById().getData();
-        //TODO 通过Feign远程调用 会员地址服务
+        //【5】 通过Feign远程调用 会员地址服务
         UmsMemberReceiveAddress address = umsMemberFeignApi.getItem(orderParam.getMemberReceiveAddressId()).getData();
 
         //预减库存
@@ -217,14 +216,13 @@ public class SecKillOrderServiceImpl implements SecKillOrderService {
 
         /*----------------------------------基本方案---------------------------------------*/
         /*try {
-            //悲观锁
+            //【悲观锁】
             Integer dbStock = miaoShaStockDao.selectMiaoShaStockInLock(product.getFlashPromotionRelationId());
             if(dbStock <= 0){
                 return CommonResult.failed("商品已抢完！");
             }
             miaoShaStockDao.descStockInLock(product.getFlashPromotionRelationId(),dbStock-1);
-
-            //减库存,DB乐观锁减库存实现
+            //【乐观锁】减库存,DB乐观锁减库存实现
             Integer dbStock = miaoShaStockDao.selectMiaoShaStock(product.getFlashPromotionRelationId());
             if(dbStock <= 0){
                 return CommonResult.failed("商品已抢完！");
@@ -233,7 +231,6 @@ public class SecKillOrderServiceImpl implements SecKillOrderService {
             if(id <= 0){
                 return CommonResult.failed("没抢到！再接再厉！");
             }
-
             int resultDb = miaoShaStockDao.descStock(product.getFlashPromotionRelationId(),1);
             if(resultDb > 0 ){
                 //插入订单记录
@@ -390,28 +387,29 @@ public class SecKillOrderServiceImpl implements SecKillOrderService {
      * 订单下单前的购买与检查
      */
     private CommonResult confirmCheck(Long productId,Long memberId,String token) throws BusinessException {
+        /*1、设置标记，如果售罄了在本地cache中设置为true*/
         Boolean localcache = cache.getCache(RedisKeyPrefixConst.MIAOSHA_STOCK_CACHE_PREFIX + productId);
         if(localcache != null && localcache){
             return CommonResult.failed("商品已经售罄,请购买其它商品!");
         }
 
         /*
-         * 校验是否有权限购买token
+         *2、 校验是否有权限购买token
          */
         String redisToken = redisOpsUtil.get(RedisKeyPrefixConst.MIAOSHA_TOKEN_PREFIX + memberId + ":" + productId);
         if(StringUtils.isEmpty(redisToken) || !redisToken.equals(token)){
             return CommonResult.failed("非法请求,token无效!");
         }
 
-        //从redis缓存当中取出当前要购买的商品库存
+        //3、从redis缓存当中取出当前要购买的商品库存
         Integer stock = redisOpsUtil.get(RedisKeyPrefixConst.MIAOSHA_STOCK_CACHE_PREFIX + productId,Integer.class);
 
         if(stock == null || stock <= 0){
+            /*设置标记，如果售罄了在本地cache中设置为true*/
             cache.setLocalCache(RedisKeyPrefixConst.MIAOSHA_STOCK_CACHE_PREFIX + productId,true);
             return CommonResult.failed("商品已经售罄,请购买其它商品!");
         }
 
-        //todo 检查是否正在排队当中
         String async = redisOpsUtil.get(RedisKeyPrefixConst.MIAOSHA_ASYNC_WAITING_PREFIX + memberId + ":" + productId);
         if(async != null && async.equals("1")){
             Map<String,Object> result = new HashMap<>();

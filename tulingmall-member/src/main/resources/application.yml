@@ -43,7 +43,7 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: localhost:8848
+        server-addr: tlshop.com:8848
 
 mybatis:
   mapper-locations:
