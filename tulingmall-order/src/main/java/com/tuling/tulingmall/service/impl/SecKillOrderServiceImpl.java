@@ -255,7 +255,7 @@ public class SecKillOrderServiceImpl implements SecKillOrderService {
         itemList.add(orderItem);
         Map<String,Object> result = new HashMap<>();
         result.put("order",order);
-        result.put("orderItem",itemList);
+        result.put("orderItem",itemList);0
         //下单方式0->同步下单,1->异步下单排队中,-1->秒杀失败
         result.put("orderStatus","0");*/
 
@@ -396,10 +396,10 @@ public class SecKillOrderServiceImpl implements SecKillOrderService {
         /*
          *2、 校验是否有权限购买token
          */
-        String redisToken = redisOpsUtil.get(RedisKeyPrefixConst.MIAOSHA_TOKEN_PREFIX + memberId + ":" + productId);
+      /*  String redisToken = redisOpsUtil.get(RedisKeyPrefixConst.MIAOSHA_TOKEN_PREFIX + memberId + ":" + productId);
         if(StringUtils.isEmpty(redisToken) || !redisToken.equals(token)){
             return CommonResult.failed("非法请求,token无效!");
-        }
+        }*/
 
         //3、从redis缓存当中取出当前要购买的商品库存
         Integer stock = redisOpsUtil.get(RedisKeyPrefixConst.MIAOSHA_STOCK_CACHE_PREFIX + productId,Integer.class);
