@@ -3,10 +3,13 @@ package com.tuling;
 import org.apache.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.ApplicationContext;
 
-@SpringBootApplication(exclude = SpringBootConfiguration.class) /*(exclude = {GlobalTransactionAutoConfiguration.class})*/
+//不使用ShardingSphere。SpringBootConfiguration会往Spring中注入ShardingDataSource
+//@SpringBootApplication(exclude = {SpringBootConfiguration.class}) /*(exclude = {GlobalTransactionAutoConfiguration.class})*/
+@SpringBootApplication
 @EnableFeignClients
 public class TulingmallOrderApplication {
 

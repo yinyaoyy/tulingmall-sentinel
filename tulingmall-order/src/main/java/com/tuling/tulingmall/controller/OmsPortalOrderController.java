@@ -3,6 +3,9 @@ package com.tuling.tulingmall.controller;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.google.common.collect.Maps;
+import com.ramostear.captcha.HappyCaptcha;
+import com.ramostear.captcha.support.CaptchaStyle;
+import com.ramostear.captcha.support.CaptchaType;
 import com.tuling.tulingmall.common.api.CommonResult;
 import com.tuling.tulingmall.common.constant.RedisKeyPrefixConst;
 import com.tuling.tulingmall.common.exception.BusinessException;
@@ -27,12 +30,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import sun.misc.BASE64Encoder;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -51,6 +53,7 @@ import java.util.concurrent.TimeUnit;
 @Api(tags = "OmsPortalOrderController",description = "订单管理")
 @RequestMapping("/order")
 public class OmsPortalOrderController {
+
     @Autowired
     private OmsPortalOrderService portalOrderService;
 
@@ -246,6 +249,7 @@ public class OmsPortalOrderController {
             @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
             @RequestParam(value = "memberId") Long memberId,
             @RequestParam(value = "status",required = false) Integer status){
+
         if(memberId == null || (status!=null && status > 4)){
             return CommonResult.validateFailed();
         }
@@ -317,7 +321,7 @@ public class OmsPortalOrderController {
         //验证成功,删除该验证码
         redisOpsUtil.delete(verifyCodeKey);
 
-        //todo 创建token
+        //创建一个token，代表该用户有购买商品的权限。
         String token = MD5.md5(UUID.randomUUID().toString());
 
         log.info("miaosha token:{}",token);
@@ -337,22 +341,24 @@ public class OmsPortalOrderController {
                                       @RequestParam("productId") Long productId,
                                       @RequestHeader("memberId") Long memberId){
         try {
+            //===============自定义验证码===========
             VerifyCodeImgUtil.VerifyCodeInfo imageInfo = VerifyCodeImgUtil.createVerifyCode();
-
             log.info("验证码答案:{}",imageInfo.getResult());
-
-            //todo 验证码答案写入到redis
+            //验证码答案写入到redis
             redisOpsUtil.set(RedisKeyPrefixConst.MIAOSHA_VERIFY_CODE_PREFIX + memberId + ":" + productId
                     ,imageInfo.getResult()
                     ,300
                     ,TimeUnit.SECONDS);
-
             response.setHeader("Content-Type", "image/jpeg");
             OutputStream out = response.getOutputStream();
             ImageIO.write(imageInfo.getBufferedImage(), "JPEG", out);
             out.flush();
             out.close();
-            return null;
+
+            redisOpsUtil.set(RedisKeyPrefixConst.MIAOSHA_VERIFY_CODE_PREFIX + memberId + ":" + productId
+                    ,imageInfo.getResult()
+                    ,300
+                    ,TimeUnit.SECONDS);
             /**
              * 返回图片的base64编码,js解码成图片
              */
@@ -363,6 +369,23 @@ public class OmsPortalOrderController {
             String png_base64 =  encoder.encodeBuffer(bytes).trim();//转换成base64串
             png_base64 = png_base64.replaceAll("\n", "").replaceAll("\r", "");//删除 \r\n
             return CommonResult.success(png_base64);*/
+            //===============自定义验证码结束===========
+            //====== HappyCaptcha验证码 =======
+            //这个步骤就会完成生成图片并且往response发送的步骤。
+//            HappyCaptcha.require(request,response).style(CaptchaStyle.ANIM)
+//                    .type(CaptchaType.ARITHMETIC_ZH)
+//                    .build().finish();
+//            //HappyCaptcha生成的验证码是String类型
+//            Object captcha = request.getSession().getAttribute("happy-captcha");
+//            int code = Integer.parseInt(captcha.toString());
+//            log.info("验证码答案:{}",captcha);
+//
+//            redisOpsUtil.set(RedisKeyPrefixConst.MIAOSHA_VERIFY_CODE_PREFIX + memberId + ":" + productId
+//                    ,code
+//                    ,300
+//                    ,TimeUnit.SECONDS);
+            //====== HappyCaptcha验证码结束 =======
+            return null;
         }catch(Exception e) {
             e.printStackTrace();
             return CommonResult.failed("秒杀失败");
