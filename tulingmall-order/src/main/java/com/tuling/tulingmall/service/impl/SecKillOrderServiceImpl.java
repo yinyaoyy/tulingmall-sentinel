@@ -394,7 +394,7 @@ public class SecKillOrderServiceImpl implements SecKillOrderService {
         }
 
         /*
-         *2、 校验是否有权限购买token
+         *2、 校验是否有权限购买token TODO 楼兰
          */
       /*  String redisToken = redisOpsUtil.get(RedisKeyPrefixConst.MIAOSHA_TOKEN_PREFIX + memberId + ":" + productId);
         if(StringUtils.isEmpty(redisToken) || !redisToken.equals(token)){
