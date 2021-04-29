@@ -91,18 +91,18 @@ public class OmsPortalOrderController {
      * @return
      * @throws BusinessException
      */
-    @RequestMapping(value = "/{token}/generateConfirmOrder",method = RequestMethod.POST)
+    @RequestMapping(value = "/miaosha/generateConfirmOrder",method = RequestMethod.POST)
     @ResponseBody
     public CommonResult generateMiaoShaConfirmOrder(@RequestParam("productId") Long productId,
-                                                    @PathVariable("token") String token,
+                                                  String token,
                                                     @RequestHeader("memberId") Long memberId) throws BusinessException {
         return secKillOrderService.generateConfirmMiaoShaOrder(productId,memberId,token);
     }
 
-    @RequestMapping(value = "/{token}/generateOrder",method = RequestMethod.POST)
+    @RequestMapping(value = "/miaosha/generateOrder",method = RequestMethod.POST)
     @ResponseBody
     public CommonResult generateMiaoShaOrder(@RequestBody OrderParam orderParam,
-                                             @PathVariable("token") String token,
+                                          String token,
                                              @RequestHeader("memberId") Long memberId) throws BusinessException {
         return secKillOrderService.generateSecKillOrder(orderParam,memberId,token);
     }
@@ -330,7 +330,7 @@ public class OmsPortalOrderController {
                 ,token
                 ,300
                 ,TimeUnit.SECONDS);
-
+        System.out.println("token:::::::::::"+token);
         return CommonResult.success(token);
     }
 
@@ -390,6 +390,38 @@ public class OmsPortalOrderController {
             e.printStackTrace();
             return CommonResult.failed("秒杀失败");
         }
+    }
+
+
+
+
+    /*--------------------------------测试用---------------------------------------*/
+    @RequestMapping(value="/token2", method=RequestMethod.GET)
+    @ResponseBody
+    public CommonResult getToken(HttpServletRequest request
+            , @RequestParam("productId") Long productId
+            , @RequestParam("memberId") Long memberId) {
+        /*
+         * 用redis限流，限制接口1分钟最多访问10000次
+         */
+        String requestURI = request.getRequestURI().toString();
+        Long requestNum = redisOpsUtil.incr(requestURI);
+        if (requestNum == 1) {
+            redisOpsUtil.expire(requestURI,60, TimeUnit.SECONDS);
+        } else if (requestNum > 10000) {
+            return CommonResult.failed("访问超载，请稍后再试");
+        }
+        //todo 创建token
+        String token = MD5.md5(UUID.randomUUID().toString());
+
+        log.info("miaosha token:{}",token);
+
+        redisOpsUtil.set(RedisKeyPrefixConst.MIAOSHA_TOKEN_PREFIX + memberId + ":" + productId
+                ,token
+                ,300
+                ,TimeUnit.SECONDS);
+        System.out.println("token:::::::::::"+token);
+        return CommonResult.success(token);
     }
 
 }
