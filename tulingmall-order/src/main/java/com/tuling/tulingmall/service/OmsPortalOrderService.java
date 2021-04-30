@@ -6,6 +6,8 @@ import com.tuling.tulingmall.domain.ConfirmOrderResult;
 import com.tuling.tulingmall.domain.MqCancelOrder;
 import com.tuling.tulingmall.domain.OmsOrderDetail;
 import com.tuling.tulingmall.domain.OrderParam;
+import org.apache.shardingsphere.transaction.annotation.ShardingTransactionType;
+import org.apache.shardingsphere.transaction.core.TransactionType;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -23,7 +25,8 @@ public interface OmsPortalOrderService {
     /**
      * 根据提交信息生成订单
      */
-    //@Transactional
+    @Transactional
+    @ShardingTransactionType(TransactionType.XA)
     CommonResult generateOrder(OrderParam orderParam,Long memberId) throws BusinessException;
 
     /**

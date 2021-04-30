@@ -148,7 +148,7 @@
     </if>
   </delete>
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.tuling.tulingmall.model.OmsOrder" useGeneratedKeys="true">
-    insert into oms_order (member_id, coupon_id, order_sn, 
+    insert into oms_order (member_id, coupon_id, order_sn,
       create_time, member_username, total_amount, 
       pay_amount, freight_amount, promotion_amount, 
       integration_amount, coupon_amount, discount_amount, 
@@ -163,7 +163,7 @@
       delete_status, use_integration, payment_time, 
       delivery_time, receive_time, comment_time, 
       modify_time, qrcode)
-    values (#{memberId,jdbcType=BIGINT}, #{couponId,jdbcType=BIGINT}, #{orderSn,jdbcType=VARCHAR}, 
+    values (#{memberId,jdbcType=BIGINT}, #{couponId,jdbcType=BIGINT}, #{orderSn,jdbcType=VARCHAR},
       #{createTime,jdbcType=TIMESTAMP}, #{memberUsername,jdbcType=VARCHAR}, #{totalAmount,jdbcType=DECIMAL}, 
       #{payAmount,jdbcType=DECIMAL}, #{freightAmount,jdbcType=DECIMAL}, #{promotionAmount,jdbcType=DECIMAL}, 
       #{integrationAmount,jdbcType=DECIMAL}, #{couponAmount,jdbcType=DECIMAL}, #{discountAmount,jdbcType=DECIMAL}, 
