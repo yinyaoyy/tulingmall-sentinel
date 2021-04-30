@@ -30,6 +30,7 @@
 		<module>tulingmall-api</module>
 		<module>tulingmall-admin</module>
 		<module>tulingmall-portal</module>
+		<module>tulingmall-seckill</module>
 	</modules>
 
 	<properties>
