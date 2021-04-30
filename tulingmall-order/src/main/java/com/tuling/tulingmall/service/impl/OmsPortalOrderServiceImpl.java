@@ -308,8 +308,8 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
                 throw new RuntimeException("远程调用会员服务扣除用户积分异常");
             }
         }
-        //删除购物车中的下单商品
-        deleteCartItemList(cartPromotionItemList, memberId);
+        //删除购物车中的下单商品 --wly
+//        deleteCartItemList(cartPromotionItemList, memberId);
         Map<String, Object> result = new HashMap<>();
         result.put("order", order);
         result.put("orderItemList", orderItemList);

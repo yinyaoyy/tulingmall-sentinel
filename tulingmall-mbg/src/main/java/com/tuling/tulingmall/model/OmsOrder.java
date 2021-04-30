@@ -44,7 +44,7 @@ public class OmsOrder implements Serializable {
     private BigDecimal discountAmount;
 
     @ApiModelProperty(value = "支付方式：0->未支付；1->支付宝；2->微信")
-    private Integer payType;
+    private Integer payType = 0 ;
 
     @ApiModelProperty(value = "订单来源：0->PC订单；1->app订单")
     private Integer sourceType;

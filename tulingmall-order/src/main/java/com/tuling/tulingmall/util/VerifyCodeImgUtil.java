@@ -28,15 +28,15 @@ public class VerifyCodeImgUtil {
         g.fillRect(0, 0, width, height);
         // draw the border
         g.setColor(Color.black);
-        g.drawRect(0, 0, width - 1, height - 1);
+//        g.drawRect(0, 0, width - 1, height - 1);
         // create a random instance to generate the codes
         Random rdm = new Random();
         // make some confusion
-        for (int i = 0; i < 50; i++) {
-            int x = rdm.nextInt(width);
-            int y = rdm.nextInt(height);
-            g.drawOval(x, y, 0, 0);
-        }
+//        for (int i = 0; i < 50; i++) {
+//            int x = rdm.nextInt(width);
+//            int y = rdm.nextInt(height);
+//            g.drawOval(x, y, 0, 0);
+//        }
         // generate a random code
         String verifyCode = generateVerifyCode(rdm);
         g.setColor(new Color(0, 100, 0));

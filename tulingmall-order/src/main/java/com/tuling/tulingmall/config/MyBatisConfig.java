@@ -1,5 +1,6 @@
 package com.tuling.tulingmall.config;
 
+import com.tuling.tulingmall.SeataATOrderService;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.annotation.MapperScan;
 import org.mybatis.spring.boot.autoconfigure.MybatisProperties;
@@ -9,9 +10,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,19 +27,11 @@ import java.util.List;
  * Created by macro on 2019/4/8.
  */
 @Configuration
-@EnableTransactionManagement
 @MapperScan({"com.tuling.tulingmall.mapper","com.tuling.tulingmall.portal.dao","com.tuling.tulingmall.dao"})
 public class MyBatisConfig {
 
-    @Bean
-    public PlatformTransactionManager txManager(final DataSource dataSource){
-        return new DataSourceTransactionManager(dataSource);
-    }
-
     /*@Autowired
     private MybatisProperties mybatisProperties;
-
-
 
     @Bean
     public SqlSessionFactoryBean sqlSessionFactory(DataSource dataSource) throws Exception {
