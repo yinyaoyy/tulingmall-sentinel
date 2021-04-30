@@ -17,7 +17,7 @@ spring:
         login-password: druid
       validation-query: SELECT 1 FROM DUAL
   rabbitmq: #rabbitmq相关配置
-    host: 47.111.191.111
+    host: 192.168.65.232
     port: 5672
     username: guest
     password: guest
