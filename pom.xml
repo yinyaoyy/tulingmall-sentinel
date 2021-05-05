@@ -30,6 +30,8 @@
 		<module>tulingmall-api</module>
 		<module>tulingmall-portal</module>
 		<module>tulingmall-seckill</module>
+		<module>tulingmall-admin</module>
+		<module>tulingmall-order-sharding</module>
 	</modules>
 
 	<properties>
