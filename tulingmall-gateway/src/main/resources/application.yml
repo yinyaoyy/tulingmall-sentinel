@@ -30,6 +30,10 @@ spring:
           uri: lb://tulingmall-coupons
           predicates:
             - Path=/coupon/**
+        - id: tulingmall-portal
+          uri: lb://tulingmall-portal
+          predicates:
+            - Path=/home/**,/portal/**
     nacos:
       discovery:
         server-addr: tl.nacos.com:8848
@@ -51,3 +55,5 @@ tuling:
     shouldSkipUrls:
       - /oauth/**
       - /sso/**
+      - /home/**
+      - /pms/**
