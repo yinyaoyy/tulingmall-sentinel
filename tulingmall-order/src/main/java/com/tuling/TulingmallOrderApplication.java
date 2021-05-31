@@ -8,8 +8,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.ApplicationContext;
 
 //不使用ShardingSphere。SpringBootConfiguration会往Spring中注入ShardingDataSource
-//@SpringBootApplication(exclude = {SpringBootConfiguration.class}) /*(exclude = {GlobalTransactionAutoConfiguration.class})*/
-@SpringBootApplication
+@SpringBootApplication(exclude = {SpringBootConfiguration.class}) /*(exclude = {GlobalTransactionAutoConfiguration.class})*/
+//@SpringBootApplication
 @EnableFeignClients
 public class TulingmallOrderApplication {
 

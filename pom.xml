@@ -28,8 +28,10 @@
 		<module>tulingmall-canal</module>
 		<module>tulingmall-authcenter</module>
 		<module>tulingmall-api</module>
-		<module>tulingmall-admin</module>
 		<module>tulingmall-portal</module>
+		<module>tulingmall-seckill</module>
+		<module>tulingmall-admin</module>
+		<module>tulingmall-order-sharding</module>
 	</modules>
 
 	<properties>
@@ -77,6 +79,11 @@
 				<version>${spring-cloud-alibaba.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.alibaba.cloud</groupId>
+				<artifactId>spring-cloud-alibaba-nacos-discovery</artifactId>
+				<version>2.1.1.RELEASE</version>
 			</dependency>
 			<!--mall通用模块-->
 			<dependency>
