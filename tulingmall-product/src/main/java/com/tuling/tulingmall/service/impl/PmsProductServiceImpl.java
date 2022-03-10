@@ -1,5 +1,7 @@
 package com.tuling.tulingmall.service.impl;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.github.pagehelper.PageHelper;
 import com.tuling.tulingmall.common.constant.RedisKeyPrefixConst;
 import com.tuling.tulingmall.component.LocalCache;
@@ -17,6 +19,8 @@ import com.tuling.tulingmall.service.PmsProductService;
 import com.tuling.tulingmall.util.DateUtil;
 import com.tuling.tulingmall.util.RedisOpsUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -70,6 +74,9 @@ public class PmsProductServiceImpl implements PmsProductService {
 
     @Autowired
     private LocalCache cache;
+    
+    @Autowired
+    private PmsProductServiceImpl pmsProductService;
 
     /*
      * zk分布式锁
@@ -77,13 +84,120 @@ public class PmsProductServiceImpl implements PmsProductService {
     @Autowired
     private ZKLock zkLock;
     private String lockPath = "/load_db";
+    
+    @Autowired
+    RedissonClient redission;
 
     /**
      * 获取商品详情信息
      *
      * @param id 产品ID
      */
-    public PmsProductParam getProductInfo(Long id) {
+    public PmsProductParam getProductInfo(Long id){
+        return getProductInfo2(id);
+    }
+    
+    /**
+     * 直接查询db
+     * @param id
+     * @return
+     */
+    @SentinelResource(value = "db#getProductInfo",blockHandler = "handleException")
+    public PmsProductParam getProductInfo1(Long id){
+        PmsProductParam productInfo = portalProductDao.getProductInfo(id);
+        if(null == productInfo){
+            return null;
+        }
+        checkFlash(id, productInfo);
+        return productInfo;
+    }
+    
+    public PmsProductParam  handleException(Long id, BlockException e){
+        //TODO 流控降级逻辑
+        PmsProductParam productInfo = new PmsProductParam();
+        productInfo.setName("被流控降级了");
+        return productInfo;
+    }
+    
+    /**
+     * 先查询缓存
+     * @param id
+     * @return
+     */
+    public PmsProductParam getProductInfo2(Long id) {
+        PmsProductParam productInfo = null;
+        // 查询本地缓存
+        productInfo = cache.get(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id);
+        if (null != productInfo) {
+            return productInfo;
+        }
+        // 查询redis缓存
+        productInfo = redisOpsUtil.get(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, PmsProductParam.class);
+        if (productInfo != null) {
+            //设置本地缓存
+            cache.setLocalCache(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, productInfo);
+            return productInfo;
+        }
+        // 查询DB
+        productInfo = pmsProductService.getProductInfo1(id);
+        // 设置redis缓存
+        redisOpsUtil.set(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, productInfo, 3600, TimeUnit.SECONDS);
+        // 设置本地缓存
+        cache.setLocalCache(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, productInfo);
+        return productInfo;
+    }
+    
+    /**
+     * 获取商品详情信息  从缓存中找 redis分布式锁
+     *
+     * @param id 产品ID
+     */
+    public PmsProductParam getProductInfo3(Long id) {
+        PmsProductParam productInfo = null;
+        productInfo = cache.get(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id);
+        if (null != productInfo) {
+            return productInfo;
+        }
+        productInfo = redisOpsUtil.get(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, PmsProductParam.class);
+        if (productInfo != null) {
+            cache.setLocalCache(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, productInfo);//设置本地缓存
+            return productInfo;
+        }
+        RLock lock = redission.getLock(lockPath + id);
+        try {
+            if (lock.tryLock(0, 10, TimeUnit.SECONDS)) {
+                productInfo = portalProductDao.getProductInfo(id);
+                if (null == productInfo) {
+                    return null;
+                }
+                checkFlash(id, productInfo);
+                redisOpsUtil.set(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, productInfo, 3600, TimeUnit.SECONDS);
+                cache.setLocalCache(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, productInfo);
+                log.info("set cache productId:" );
+            } else {
+                productInfo = redisOpsUtil.get(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, PmsProductParam.class);
+                if (productInfo != null) {
+                    cache.setLocalCache(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id, productInfo);
+                }
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            if (lock.isLocked()) {
+                if (lock.isHeldByCurrentThread()) {
+                    lock.unlock();
+                }
+            }
+        }
+        return productInfo;
+    }
+
+    /**
+     * 获取商品详情信息 分布式锁、 本地缓存、redis缓存
+     * @param id
+     * @return
+     */
+    public PmsProductParam getProductInfo4(Long id) {
         PmsProductParam productInfo = null;
         productInfo = cache.get(RedisKeyPrefixConst.PRODUCT_DETAIL_CACHE + id);
         if (null != productInfo) {
@@ -118,6 +232,7 @@ public class PmsProductServiceImpl implements PmsProductService {
         }
         return productInfo;
     }
+
 
     private void checkFlash(Long id, PmsProductParam productInfo) {
         FlashPromotionParam promotion = flashPromotionProductDao.getFlashPromotion(id);

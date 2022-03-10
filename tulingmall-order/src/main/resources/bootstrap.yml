@@ -4,8 +4,8 @@ spring:
       config:
         server-addr: tl.nacos.com:8848
         file-extension: yml
-        shared-dataids: tulingmall-nacos.yml
-        refreshable-dataids: tulingmall-nacos.yml
+        shared-dataids: tulingmall-nacos.yml,tulingmall-sentinel.yml
+        refreshable-dataids: tulingmall-nacos.yml,tulingmall-sentinel.yml
         max-retry: 10
   application:
     name: tulingmall-order

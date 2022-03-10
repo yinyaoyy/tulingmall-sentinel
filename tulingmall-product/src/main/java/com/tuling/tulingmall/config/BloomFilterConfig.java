@@ -54,13 +54,14 @@ public class BloomFilterConfig implements InitializingBean{
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        List<Long> list = productService.getAllProductId();
-        log.info("加载产品到布隆过滤器当中,size:{}",list.size());
-        if(!CollectionUtils.isEmpty(list)){
-            list.stream().forEach(item->{
-                //LocalBloomFilter.put(item);
-                bloomRedisService().addByBloomFilter(RedisKeyPrefixConst.PRODUCT_REDIS_BLOOM_FILTER,item+"");
-            });
-        }
+        //  TODO 线程异常加载
+//        List<Long> list = productService.getAllProductId();
+//        log.info("加载产品到布隆过滤器当中,size:{}",list.size());
+//        if(!CollectionUtils.isEmpty(list)){
+//            list.stream().forEach(item->{
+//                //LocalBloomFilter.put(item);
+//                bloomRedisService().addByBloomFilter(RedisKeyPrefixConst.PRODUCT_REDIS_BLOOM_FILTER,item+"");
+//            });
+//        }
     }
 }

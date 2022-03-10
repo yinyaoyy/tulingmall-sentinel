@@ -1,6 +1,7 @@
 package com.tuling.tulingmall.dao;
 
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.tuling.tulingmall.domain.CartProduct;
 import com.tuling.tulingmall.domain.PmsProductParam;
 import com.tuling.tulingmall.domain.PromotionProduct;

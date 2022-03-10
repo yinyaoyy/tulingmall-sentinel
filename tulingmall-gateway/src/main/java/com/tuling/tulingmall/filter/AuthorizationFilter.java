@@ -31,7 +31,7 @@ import java.util.Map;
  * 认证过滤器,根据url判断用户请求是要经过认证 才能访问
  * Created by smlz on 2019/12/17.
  */
-@Component
+//@Component
 @Slf4j
 @EnableConfigurationProperties(value = NotAuthUrlProperties.class)
 public class AuthorizationFilter implements GlobalFilter,Ordered,InitializingBean {

@@ -318,7 +318,9 @@ public class SecKillOrderServiceImpl implements SecKillOrderService {
         }
         return CommonResult.success(result,"下单中.....");
     }
-
+    
+   
+    
     @Transactional
     public Long asyncCreateOrder(OmsOrder order,OmsOrderItem orderItem,Long flashPromotionRelationId) {
         //减库存

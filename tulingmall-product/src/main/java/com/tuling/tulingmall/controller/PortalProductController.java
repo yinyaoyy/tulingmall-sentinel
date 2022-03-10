@@ -1,5 +1,7 @@
 package com.tuling.tulingmall.controller;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.tuling.tulingmall.common.api.CommonResult;
 import com.tuling.tulingmall.dao.PortalProductDao;
 import com.tuling.tulingmall.domain.*;
@@ -37,14 +39,20 @@ public class PortalProductController {
             @ApiImplicitParam(name = "flashPromotionSessionId",value = "活动场次ID,例如:12点场",paramType = "query",dataType = "long")
     })
     @RequestMapping(value = "/productInfo/{id}", method = RequestMethod.GET)
+    @SentinelResource(value = "getProductInfo",blockHandler = "handleException")
     public CommonResult getProductInfo(@PathVariable Long id) {
         PmsProductParam pmsProductParam=pmsProductService.getProductInfo(id);
         return CommonResult.success(pmsProductParam);
     }
-
-
-
-
+    
+    
+    public  CommonResult handleException(@PathVariable Long id, BlockException e){
+        //TODO 流控降级逻辑
+        PmsProductParam pmsProductParam = new PmsProductParam();
+        pmsProductParam.setName("被流控降级了");
+        return CommonResult.success(pmsProductParam);
+    }
+    
     @ApiOperation(value = "根据商品Id获取购物车商品的信息")
     @RequestMapping(value = "/cartProduct/{productId}", method = RequestMethod.GET)
     public CommonResult<CartProduct> getCartProduct(@PathVariable("productId") Long productId){

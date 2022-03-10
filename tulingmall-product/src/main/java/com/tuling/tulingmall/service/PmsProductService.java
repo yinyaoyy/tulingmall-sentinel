@@ -19,6 +19,7 @@ public interface PmsProductService {
      * @param id 产品ID
      */
     PmsProductParam getProductInfo(Long id);
+    
 
     /**
      * 获取秒杀商品

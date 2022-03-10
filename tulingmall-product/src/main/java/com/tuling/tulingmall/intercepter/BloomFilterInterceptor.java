@@ -34,10 +34,11 @@ public class BloomFilterInterceptor implements HandlerInterceptor {
         PathMatcher matcher = new AntPathMatcher();
         //解析出pathvariable
         Map<String, String> pathVariable = matcher.extractUriTemplateVariables("/pms/productInfo/{id}", currentUrl);
+        
         //布隆过滤器存储在redis中
-        if(bloomRedisService.includeByBloomFilter(RedisKeyPrefixConst.PRODUCT_REDIS_BLOOM_FILTER,pathVariable.get("id"))){
+//        if(bloomRedisService.includeByBloomFilter(RedisKeyPrefixConst.PRODUCT_REDIS_BLOOM_FILTER,pathVariable.get("id"))){
             return true;
-        }
+ //       }
 
         /**
          * 存储在本地jvm布隆过滤器中
@@ -50,11 +51,11 @@ public class BloomFilterInterceptor implements HandlerInterceptor {
          * 不在本地布隆过滤器当中，直接返回验证失败
          * 设置响应头
          */
-        response.setHeader("Content-Type","application/json");
-        response.setCharacterEncoding("UTF-8");
-        String result = new ObjectMapper().writeValueAsString(CommonResult.validateFailed("产品不存在!"));
-        response.getWriter().print(result);
-        return false;
+//        response.setHeader("Content-Type","application/json");
+//        response.setCharacterEncoding("UTF-8");
+//        String result = new ObjectMapper().writeValueAsString(CommonResult.validateFailed("产品不存在!"));
+//        response.getWriter().print(result);
+//        return false;
 
     }
 

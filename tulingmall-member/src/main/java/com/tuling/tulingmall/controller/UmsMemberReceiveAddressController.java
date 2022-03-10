@@ -28,6 +28,8 @@ public class UmsMemberReceiveAddressController {
     public CommonResult add(@RequestBody UmsMemberReceiveAddress address,@RequestHeader("memberId") Long memberId) {
         int count = memberReceiveAddressService.add(address,memberId);
         if (count > 0) {
+            
+            
             return CommonResult.success(count);
         }
         return CommonResult.failed();
@@ -60,6 +62,7 @@ public class UmsMemberReceiveAddressController {
     @ResponseBody
     public CommonResult<List<UmsMemberReceiveAddress>> list(@RequestHeader("memberId") long memberId) {
         List<UmsMemberReceiveAddress> addressList = memberReceiveAddressService.list(memberId);
+       
         return CommonResult.success(addressList);
     }
 
@@ -67,6 +70,18 @@ public class UmsMemberReceiveAddressController {
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<UmsMemberReceiveAddress> getItem(@PathVariable Long id,@RequestHeader("memberId") long memberId) {
+        if(memberId==3){
+            try {
+                //模拟网络问题
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        if(memberId==4){
+            //模拟业务异常
+            throw new IllegalArgumentException("非法参数异常");
+        }
         UmsMemberReceiveAddress address = memberReceiveAddressService.getItem(id,memberId);
         return CommonResult.success(address);
     }

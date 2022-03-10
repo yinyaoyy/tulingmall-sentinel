@@ -40,7 +40,7 @@ public class GatewayBlockExceptionHandler extends DefaultBlockRequestHandler {
     private Mono<ServerResponse> htmlErrorResponse(Throwable ex) {
 
         return ServerResponse.status(HttpStatus.TOO_MANY_REQUESTS)
-                .contentType(MediaType.TEXT_PLAIN)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)  //避免中文乱码
                 .syncBody(new String(JSON.toJSONString(buildErrorResult(ex))));
     }
 

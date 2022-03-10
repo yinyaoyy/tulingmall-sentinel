@@ -7,6 +7,7 @@ import com.tuling.tulingmall.dto.PmsProductQueryParam;
 import com.tuling.tulingmall.dto.PmsProductResult;
 import com.tuling.tulingmall.model.PmsProduct;
 import com.tuling.tulingmall.service.PmsProductService;
+import com.tuling.tulingmall.service.impl.PmsProductServiceImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Random;
 
 /**
  * 商品管理Controller
@@ -152,4 +154,20 @@ public class PmsProductController {
             return CommonResult.failed();
         }
     }
+    
+    
+    @RequestMapping(value = "/createList", method = RequestMethod.POST)
+    @ResponseBody
+    @PreAuthorize("hasAuthority('pms:product:create')")
+    public CommonResult createList() {
+        PmsProductResult productParam = productService.getUpdateInfo(1L);
+    
+        for(long i=1;i<=1000;i++){
+            //productParam.setId(i);
+            productParam.setName("星芒刺绣网纱底裤"+i+ new Random().nextInt(1000000));
+            productService.create(productParam);
+        }
+        return CommonResult.success("ok");
+    }
+    
 }

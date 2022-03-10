@@ -8,6 +8,9 @@ import com.tuling.tulingmall.dao.FlashPromotionProductDao;
 import com.tuling.tulingmall.domain.FlashPromotionParam;
 import com.tuling.tulingmall.util.RedisOpsUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.Redisson;
+import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -92,7 +95,14 @@ public class RedisConifg implements InitializingBean {
     public RedisOpsUtil redisOpsUtil(){
         return new RedisOpsUtil();
     }
-
-
+    
+    
+    
+    @Bean
+    public RedissonClient redissonClient(){
+        Config config = new Config();
+        config.useSingleServer().setAddress("redis://tlshop.com:6379").setPassword("123456").setDatabase(1);
+        return Redisson.create(config);
+    }
 
 }

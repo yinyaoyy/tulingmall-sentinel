@@ -2,6 +2,7 @@ package com.tuling.tulingmall.feignapi.ums;
 
 import com.tuling.tulingmall.common.api.CommonResult;
 import com.tuling.tulingmall.domain.PortalMemberInfo;
+import com.tuling.tulingmall.feignapi.factory.UmsMemberFeginFallbackFactory;
 import com.tuling.tulingmall.model.UmsMember;
 import com.tuling.tulingmall.model.UmsMemberReceiveAddress;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -16,7 +17,7 @@ import java.util.List;
 * @createDate: 2020/1/23 15:01
 * @version: 1.0
 */
-@FeignClient(name = "tulingmall-member",path = "/member")
+@FeignClient(name = "tulingmall-member",path = "/member",fallbackFactory = UmsMemberFeginFallbackFactory.class)
 public interface UmsMemberFeignApi {
 
     @RequestMapping(value = "/address/{id}", method = RequestMethod.GET)

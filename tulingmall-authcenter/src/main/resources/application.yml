@@ -1,3 +1,5 @@
+server:
+  port: 9998
 
 spring:
   datasource:
@@ -30,7 +32,5 @@ tuling:
       keyPairAlias: jwt
       keyPairSecret: 123456
       keyPairStoreSecret: 123456
-server:
-  port: 9999
 
 

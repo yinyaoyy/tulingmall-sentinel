@@ -136,6 +136,7 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
         result.setIntegrationConsumeSetting(integrationConsumeSetting);
         //计算总金额、活动优惠、应付金额
         ConfirmOrderResult.CalcAmount calcAmount = calcCartAmount(cartPromotionItemList);
+        
         result.setCalcAmount(calcAmount);
         return result;
     }

@@ -3,6 +3,8 @@ server:
 spring:
   application:
     name: tulingmall-gateway
+  main:
+    allow-bean-definition-overriding: true
   cloud:
     gateway:
       discovery:
@@ -37,6 +39,33 @@ spring:
     nacos:
       discovery:
         server-addr: tl.nacos.com:8848
+    # sentinel配置
+    sentinel:
+      transport:
+        dashboard: tl.sentinel.com:8000
+      datasource:
+        gateway-flow-rules:
+          nacos:
+            server-addr: tl.nacos.com:8848
+            dataId: ${spring.application.name}-gateway-flow-rules
+            groupId: SENTINEL_GROUP
+            data-type: json
+            rule-type: gw-flow
+        gateway-api-rules:
+          nacos:
+            server-addr: tl.nacos.com:8848
+            dataId: ${spring.application.name}-gateway-api-rules
+            groupId: SENTINEL_GROUP
+            data-type: json
+            rule-type: gw-api-group
+
+        system-rules:
+          nacos:
+            server-addr: tl.nacos.com:8848
+            dataId: ${spring.application.name}-system-rules
+            groupId: SENTINEL_GROUP
+            data-type: json
+            rule-type: system
 
 management: #开启SpringBoot Admin的监控
   endpoints:
@@ -50,6 +79,7 @@ logging:
   level:
     org.springframework.cloud.gateway: debug
 
+
 tuling:
   gateway:
     shouldSkipUrls:
@@ -57,3 +87,5 @@ tuling:
       - /sso/**
       - /home/**
       - /pms/**
+
+
